@@ -35,19 +35,21 @@ internal readonly record struct TaggingSet
     /// </summary>
     internal string ImageFilePath { get; init; }
 
-    internal IReadOnlyList<string> AllFiles => [..AudioFilePaths, JsonFilePath, ImageFilePath];
+    internal IReadOnlyList<string> AllFiles => [.. AudioFilePaths, JsonFilePath, ImageFilePath];
 
     /// <summary>
     /// A regex that finds all files whose filename includes a video ID.
     /// Group 1 contains the video ID itself.
     /// </summary>
-    private static readonly Regex FileNamesWithVideoIdsRegex = new(@".+\[([\w_\-]{11})\](?:.*)?\.(\w+)");
+    private static readonly Regex FileNamesWithVideoIdsRegex =
+        new(@".+\[([\w_\-]{11})\](?:.*)?\.(\w+)");
 
     private TaggingSet(
         string resourceId,
         ICollection<string> audioFilePaths,
         string jsonFilePath,
-        string imageFilePath)
+        string imageFilePath
+    )
     {
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("The resource ID must be provided.");
@@ -56,7 +58,10 @@ internal readonly record struct TaggingSet
         if (string.IsNullOrWhiteSpace(imageFilePath))
             throw new ArgumentException("The image file path must be provided.");
         if (audioFilePaths.Count == 0)
-            throw new ArgumentException("At least one audio file path must be provided.", nameof(audioFilePaths));
+            throw new ArgumentException(
+                "At least one audio file path must be provided.",
+                nameof(audioFilePaths)
+            );
 
         ResourceId = resourceId.Trim();
         AudioFilePaths = audioFilePaths.ToImmutableHashSet();
@@ -85,31 +90,39 @@ internal readonly record struct TaggingSet
         const string imageFileExt = ".jpg";
 
         return filePaths
-                    // First, get regex matches of all files whose filenames contain a video ID regex.
-                    .Select(f => FileNamesWithVideoIdsRegex.Match(f))
-                    .Where(m => m.Success)
-                    .Select(m => m.Captures.OfType<Match>().First())
-
-                    // Then, group those files as key-value pairs using the video ID as the key.
-                    .GroupBy(m => m.Groups[1].Value, // Video ID
-                             m => m.Groups[0].Value) // Full filenames (1 or more for each video ID)
-
-                    // Next, ensure the correct count of image and JSON files, ignoring those that don't match.
-                    // (For thought: It might be an option to track and report the invalid ones as well.)
-                    .Where(gr =>
-                        gr.Any(f => PostProcessor.AudioExtensions.CaseInsensitiveContains(Path.GetExtension(f))) &&
-                        gr.Count(f => f.EndsWith(jsonFileExt, StringComparison.OrdinalIgnoreCase)) == 1 &&
-                        gr.Count(f => f.EndsWith(imageFileExt, StringComparison.OrdinalIgnoreCase)) == 1)
-
-                    // Lastly, group everything into new TaggingSets.
-                    .Select(gr => {
-                        return new TaggingSet(
-                            gr.Key, // Video ID
-                            gr.Where(f => PostProcessor.AudioExtensions.CaseInsensitiveContains(Path.GetExtension(f))).ToList(),
-                            gr.Single(f => f.EndsWith(jsonFileExt)),
-                            gr.Single(f => f.EndsWith(imageFileExt))
-                        );
-                    })
-                    .ToImmutableList();
+            // First, get regex matches of all files whose filenames contain a video ID regex.
+            .Select(f => FileNamesWithVideoIdsRegex.Match(f))
+            .Where(m => m.Success)
+            .Select(m => m.Captures.OfType<Match>().First())
+            // Then, group those files as key-value pairs using the video ID as the key.
+            .GroupBy(
+                m => m.Groups[1].Value, // Video ID
+                m => m.Groups[0].Value
+            ) // Full filenames (1 or more for each video ID)
+            // Next, ensure the correct count of image and JSON files, ignoring those that don't match.
+            // (For thought: It might be an option to track and report the invalid ones as well.)
+            .Where(gr =>
+                gr.Any(f =>
+                    PostProcessor.AudioExtensions.CaseInsensitiveContains(Path.GetExtension(f))
+                )
+                && gr.Count(f => f.EndsWith(jsonFileExt, StringComparison.OrdinalIgnoreCase)) == 1
+                && gr.Count(f => f.EndsWith(imageFileExt, StringComparison.OrdinalIgnoreCase)) == 1
+            )
+            // Lastly, group everything into new TaggingSets.
+            .Select(gr =>
+            {
+                return new TaggingSet(
+                    gr.Key, // Video ID
+                    gr.Where(f =>
+                            PostProcessor.AudioExtensions.CaseInsensitiveContains(
+                                Path.GetExtension(f)
+                            )
+                        )
+                        .ToList(),
+                    gr.Single(f => f.EndsWith(jsonFileExt)),
+                    gr.Single(f => f.EndsWith(imageFileExt))
+                );
+            })
+            .ToImmutableList();
     }
 }

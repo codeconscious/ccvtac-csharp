@@ -27,7 +27,9 @@ internal static class Directories
         }
 
         var fileLabel = fileCount == 1 ? "file" : "files";
-        var report = new StringBuilder($"Found {fileCount} {fileLabel} in working directory \"{directory}\":{Environment.NewLine}");
+        var report = new StringBuilder(
+            $"Found {fileCount} {fileLabel} in working directory \"{directory}\":{Environment.NewLine}"
+        );
 
         foreach (string fileName in fileNames.Take(showMax))
         {
@@ -67,7 +69,9 @@ internal static class Directories
             return Result.Ok(successCount);
         }
 
-        var output = new StringBuilder($"While {successCount} files were deleted successfully, some files could not be deleted:");
+        var output = new StringBuilder(
+            $"While {successCount} files were deleted successfully, some files could not be deleted:"
+        );
         foreach (string error in errors.Take(showMaxErrors))
         {
             output.AppendLine($"• {error}");
@@ -97,15 +101,16 @@ internal static class Directories
     /// <param name="customIgnoreFiles">An optional list of files to be excluded.</param>
     private static ImmutableArray<string> GetDirectoryFileNames(
         string directoryName,
-        IEnumerable<string>? customIgnoreFiles = null)
+        IEnumerable<string>? customIgnoreFiles = null
+    )
     {
         var ignoreFiles = customIgnoreFiles?.Distinct() ?? [];
 
         return
-            [
-                ..Directory
-                    .GetFiles(directoryName, AllFilesSearchPattern, EnumerationOptions)
-                    .Where(filePath => ignoreFiles.None(filePath.EndsWith))
-            ];
+        [
+            .. Directory
+                .GetFiles(directoryName, AllFilesSearchPattern, EnumerationOptions)
+                .Where(filePath => ignoreFiles.None(filePath.EndsWith)),
+        ];
     }
 }

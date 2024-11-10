@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using System.Text.Json;
+using static CCVTAC.FSharp.Downloading;
 using TaggedFile = TagLib.File;
 using UserSettings = CCVTAC.FSharp.Settings.UserSettings;
-using static CCVTAC.FSharp.Downloading;
 
 namespace CCVTAC.Console.PostProcessing.Tagging;
 
@@ -13,14 +13,14 @@ internal static class Tagger
         IEnumerable<TaggingSet> taggingSets,
         CollectionMetadata? collectionJson,
         MediaType mediaType,
-        Printer printer)
+        Printer printer
+    )
     {
         printer.Debug("Adding file tags...");
 
         Watch watch = new();
 
-        bool embedImages = settings.EmbedImages &&
-                           mediaType.IsVideo || mediaType.IsPlaylistVideo;
+        bool embedImages = settings.EmbedImages && mediaType.IsVideo || mediaType.IsPlaylistVideo;
 
         foreach (var taggingSet in taggingSets)
         {
@@ -35,16 +35,20 @@ internal static class Tagger
         TaggingSet taggingSet,
         CollectionMetadata? collectionJson,
         bool embedImages,
-        Printer printer)
+        Printer printer
+    )
     {
-        printer.Debug($"{taggingSet.AudioFilePaths.Count} audio file(s) with resource ID \"{taggingSet.ResourceId}\"");
+        printer.Debug(
+            $"{taggingSet.AudioFilePaths.Count} audio file(s) with resource ID \"{taggingSet.ResourceId}\""
+        );
 
         var parsedJsonResult = ParseVideoJson(taggingSet);
         if (parsedJsonResult.IsFailed)
         {
             printer.Errors(
                 $"Error deserializing video metadata from \"{taggingSet.JsonFilePath}\":",
-                parsedJsonResult);
+                parsedJsonResult
+            );
             return;
         }
 
@@ -53,9 +57,10 @@ internal static class Tagger
         // If a single video was split, the tagging set will have multiple audio file paths.
         // In this case, we will NOT embed the image file (with the assumption that
         // the standalone image file will be available in the move-to directory).
-        string? maybeImagePath = embedImages && finalTaggingSet.AudioFilePaths.Count == 1
-            ? finalTaggingSet.ImageFilePath
-            : null;
+        string? maybeImagePath =
+            embedImages && finalTaggingSet.AudioFilePaths.Count == 1
+                ? finalTaggingSet.ImageFilePath
+                : null;
 
         foreach (string audioPath in finalTaggingSet.AudioFilePaths)
         {
@@ -83,7 +88,8 @@ internal static class Tagger
         string audioFilePath,
         string? imageFilePath,
         CollectionMetadata? collectionData,
-        Printer printer)
+        Printer printer
+    )
     {
         string audioFileName = Path.GetFileName(audioFilePath);
 
@@ -107,9 +113,10 @@ internal static class Tagger
         if (videoData.Artist is { } metadataArtists)
         {
             var firstArtist = metadataArtists.Split(", ").First();
-            var diffSummary = firstArtist == metadataArtists
-                ? string.Empty
-                : $" (extracted from \"{metadataArtists}\")";
+            var diffSummary =
+                firstArtist == metadataArtists
+                    ? string.Empty
+                    : $" (extracted from \"{metadataArtists}\")";
             taggedFile.Tag.Performers = [firstArtist];
 
             printer.Debug($"• Using metadata artist \"{firstArtist}\"{diffSummary}");
@@ -161,9 +168,11 @@ internal static class Tagger
 
         taggedFile.Tag.Comment = videoData.GenerateComment(collectionData);
 
-        if (settings.EmbedImages &&
-            !settings.DoNotEmbedImageUploaders.Contains(videoData.Uploader) &&
-            imageFilePath is not null)
+        if (
+            settings.EmbedImages
+            && !settings.DoNotEmbedImageUploaders.Contains(videoData.Uploader)
+            && imageFilePath is not null
+        )
         {
             printer.Info("Embedding artwork.");
             WriteImage(taggedFile, imageFilePath, printer);
@@ -181,10 +190,17 @@ internal static class Tagger
         /// If the supplied video uploader is specified in the settings, returns the video's upload year.
         /// Otherwise, returns null.
         /// </summary>
-        static ushort? GetAppropriateReleaseDateIfAny(UserSettings settings, VideoMetadata videoData)
+        static ushort? GetAppropriateReleaseDateIfAny(
+            UserSettings settings,
+            VideoMetadata videoData
+        )
         {
-            if (settings.IgnoreUploadYearUploaders?.Contains(videoData.Uploader,
-                                                             StringComparer.OrdinalIgnoreCase) == true)
+            if (
+                settings.IgnoreUploadYearUploaders?.Contains(
+                    videoData.Uploader,
+                    StringComparer.OrdinalIgnoreCase
+                ) == true
+            )
             {
                 return null;
             }
@@ -198,14 +214,16 @@ internal static class Tagger
     private static Result<VideoMetadata> ParseVideoJson(TaggingSet taggingSet)
     {
         string json;
-        
+
         try
         {
             json = File.ReadAllText(taggingSet.JsonFilePath);
         }
         catch (Exception ex)
         {
-            return Result.Fail($"Error reading JSON file \"{taggingSet.JsonFilePath}\": {ex.Message}.");
+            return Result.Fail(
+                $"Error reading JSON file \"{taggingSet.JsonFilePath}\": {ex.Message}."
+            );
         }
 
         try
@@ -232,24 +250,28 @@ internal static class Tagger
         {
             return taggingSet;
         }
-        
+
         // The largest audio file must be the source file.
-        var largestFileInfo =
-            taggingSet.AudioFilePaths
-                .Select(fileName => new FileInfo(fileName))
-                .OrderByDescending(fi => fi.Length)
-                .First();
+        var largestFileInfo = taggingSet
+            .AudioFilePaths.Select(fileName => new FileInfo(fileName))
+            .OrderByDescending(fi => fi.Length)
+            .First();
 
         try
         {
             File.Delete(largestFileInfo.FullName);
             printer.Debug($"Deleted pre-split source file \"{largestFileInfo.Name}\"");
 
-            return taggingSet with { AudioFilePaths = taggingSet.AudioFilePaths.Remove(largestFileInfo.FullName) };
+            return taggingSet with
+            {
+                AudioFilePaths = taggingSet.AudioFilePaths.Remove(largestFileInfo.FullName),
+            };
         }
         catch (Exception ex)
         {
-            printer.Error($"Error deleting pre-split source file \"{largestFileInfo.Name}\": {ex.Message}");
+            printer.Error(
+                $"Error deleting pre-split source file \"{largestFileInfo.Name}\": {ex.Message}"
+            );
             return taggingSet;
         }
     }
@@ -258,10 +280,7 @@ internal static class Tagger
     /// Write the video thumbnail to the file tags.
     /// </summary>
     /// <remarks>Heavily inspired by https://stackoverflow.com/a/61264720/11767771.</remarks>
-    private static void WriteImage(
-        TaggedFile taggedFile,
-        string imageFilePath,
-        Printer printer)
+    private static void WriteImage(TaggedFile taggedFile, string imageFilePath, Printer printer)
     {
         if (string.IsNullOrWhiteSpace(imageFilePath))
         {

@@ -1,6 +1,6 @@
-﻿using CCVTAC.Console.Settings;
+﻿using CCVTAC.Console.IoUtilities;
+using CCVTAC.Console.Settings;
 using Spectre.Console;
-using CCVTAC.Console.IoUtilities;
 
 namespace CCVTAC.Console;
 
@@ -20,8 +20,8 @@ internal static class Program
             return;
         }
 
-        string maybeSettingsPath = args.Length >= 2 &&
-                                   _settingsFileFlags.CaseInsensitiveContains(args[0])
+        string maybeSettingsPath =
+            args.Length >= 2 && _settingsFileFlags.CaseInsensitiveContains(args[0])
                 ? args[1] // Expected to be a settings file path.
                 : _defaultSettingsFileName;
 
@@ -35,7 +35,7 @@ internal static class Program
         {
             return;
         }
-        
+
         var settings = settingsResult.Value;
         SettingsAdapter.PrintSummary(settings, printer, header: "Settings loaded OK.");
 
@@ -75,7 +75,9 @@ internal static class Program
         {
             printer.Critical($"Fatal error: {topException.Message}");
             AnsiConsole.WriteException(topException);
-            printer.Info("Please help improve this tool by reporting this error and any relevant URLs at https://github.com/codeconscious/ccvtac/issues.");
+            printer.Info(
+                "Please help improve this tool by reporting this error and any relevant URLs at https://github.com/codeconscious/ccvtac/issues."
+            );
         }
     }
 }

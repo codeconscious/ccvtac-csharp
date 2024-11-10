@@ -18,7 +18,8 @@ public sealed class InputHelperTests
     [Fact]
     public void MultipleUrlsEnteredWithSpaces_CorrectlyParsed()
     {
-        const string combinedInput = "  https://youtu.be/5OpuZHsPBhQ  https://youtu.be/NT22EGxTuNw  ";
+        const string combinedInput =
+            "  https://youtu.be/5OpuZHsPBhQ  https://youtu.be/NT22EGxTuNw  ";
         List<string> expected = ["https://youtu.be/5OpuZHsPBhQ", "https://youtu.be/NT22EGxTuNw"];
         var actual = InputHelper.SplitInput(combinedInput);
         Assert.Equal(expected.Count, actual.Length);
@@ -29,7 +30,8 @@ public sealed class InputHelperTests
     [Fact]
     public void MultipleDuplicateUrlsEntered_CorrectlyParsed()
     {
-        const string combinedInput = "https://youtu.be/5OpuZHsPBhQhttps://youtu.be/NT22EGxTuNwhttps://youtu.be/5OpuZHsPBhQ";
+        const string combinedInput =
+            "https://youtu.be/5OpuZHsPBhQhttps://youtu.be/NT22EGxTuNwhttps://youtu.be/5OpuZHsPBhQ";
         List<string> expected = ["https://youtu.be/5OpuZHsPBhQ", "https://youtu.be/NT22EGxTuNw"];
         var actual = InputHelper.SplitInput(combinedInput);
         Assert.Equal(expected.Count, actual.Length);
@@ -50,8 +52,14 @@ public sealed class InputHelperTests
     [Fact]
     public void MultipleDuplicateCommandsAndUrlsEntered_CorrectlyParsed()
     {
-        const string combinedInput = "\\imageshttps://youtu.be/5OpuZHsPBhQ https://youtu.be/NT22EGxTuNw\\images  https://youtu.be/5OpuZHsPBhQ";
-        List<string> expected = ["\\images", "https://youtu.be/5OpuZHsPBhQ", "https://youtu.be/NT22EGxTuNw"];
+        const string combinedInput =
+            "\\imageshttps://youtu.be/5OpuZHsPBhQ https://youtu.be/NT22EGxTuNw\\images  https://youtu.be/5OpuZHsPBhQ";
+        List<string> expected =
+        [
+            "\\images",
+            "https://youtu.be/5OpuZHsPBhQ",
+            "https://youtu.be/NT22EGxTuNw",
+        ];
         var actual = InputHelper.SplitInput(combinedInput);
         Assert.Equal(expected.Count, actual.Length);
         Assert.Equal(expected[0], actual[0]);

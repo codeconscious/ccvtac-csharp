@@ -42,14 +42,15 @@ internal record ExternalTool
     /// <returns>A Result indicating whether the program is available or not.</returns>
     internal Result ProgramExists()
     {
-        ProcessStartInfo processStartInfo = new()
-        {
-            FileName = Name,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true,
-        };
+        ProcessStartInfo processStartInfo =
+            new()
+            {
+                FileName = Name,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
 
         try
         {
@@ -57,7 +58,9 @@ internal record ExternalTool
 
             if (process is null)
             {
-                return Result.Fail($"The program \"{Name}\" was not found. (The process was null.)");
+                return Result.Fail(
+                    $"The program \"{Name}\" was not found. (The process was null.)"
+                );
             }
 
             process.WaitForExit();

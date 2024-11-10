@@ -16,7 +16,8 @@ internal static class Detectors
     internal static T? DetectSingle<T>(
         VideoMetadata videoMetadata,
         IEnumerable<TagDetectionPattern> patterns,
-        T? defaultValue)
+        T? defaultValue
+    )
     {
         foreach (TagDetectionPattern pattern in patterns)
         {
@@ -47,7 +48,8 @@ internal static class Detectors
         VideoMetadata data,
         IEnumerable<TagDetectionPattern> patterns,
         T? defaultValue,
-        string separator)
+        string separator
+    )
     {
         HashSet<string> matchedValues = [];
 
@@ -104,11 +106,13 @@ internal static class Detectors
     {
         return fieldName switch
         {
-            "title"       => metadata.Title,
+            "title" => metadata.Title,
             "description" => metadata.Description,
 
             // TODO: It would be best to check for invalid entries upon settings deserialization.
-            _ => throw new ArgumentException($"\"{fieldName}\" is an invalid video metadata field name.")
+            _ => throw new ArgumentException(
+                $"\"{fieldName}\" is an invalid video metadata field name."
+            ),
         };
     }
 }

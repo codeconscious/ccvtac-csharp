@@ -16,7 +16,8 @@ internal static class Mover
         CollectionMetadata? maybeCollectionData,
         UserSettings settings,
         bool overwrite,
-        Printer printer)
+        Printer printer
+    )
     {
         Watch watch = new();
 
@@ -24,7 +25,11 @@ internal static class Mover
 
         string subFolderName = GetSafeSubDirectoryName(maybeCollectionData, taggingSets.First());
         string collectionName = maybeCollectionData?.Title ?? string.Empty;
-        string fullMoveToDir = Path.Combine(settings.MoveToDirectory, subFolderName, collectionName);
+        string fullMoveToDir = Path.Combine(
+            settings.MoveToDirectory,
+            subFolderName,
+            collectionName
+        );
 
         var dirResult = EnsureDirectoryExists(fullMoveToDir, printer);
         if (dirResult.IsFailed)
@@ -45,8 +50,12 @@ internal static class Mover
 
         printer.Debug($"Moving {audioFileNames.Count} audio file(s) to \"{fullMoveToDir}\"...");
 
-        var (successCount, failureCount) =
-            MoveAudioFiles(audioFileNames, fullMoveToDir, overwrite, printer);
+        var (successCount, failureCount) = MoveAudioFiles(
+            audioFileNames,
+            fullMoveToDir,
+            overwrite,
+            printer
+        );
 
         MoveImageFile(
             collectionName,
@@ -55,14 +64,15 @@ internal static class Mover
             fullMoveToDir,
             audioFileNames.Count,
             overwrite: false,
-            printer);
+            printer
+        );
 
         var fileLabel = successCount == 1 ? "file" : "files";
         printer.Info($"Moved {successCount} audio {fileLabel} in {watch.ElapsedFriendly}.");
 
         if (failureCount > 0)
         {
-            fileLabel = failureCount == 1 ? "file": "files";
+            fileLabel = failureCount == 1 ? "file" : "files";
             printer.Warning($"However, {failureCount} audio {fileLabel} could not be moved.");
         }
     }
@@ -86,9 +96,7 @@ internal static class Mover
             return playlistImages.First();
         }
 
-        return audioFileCount > 1 && images.Length == 1
-            ? images.First()
-            : null;
+        return audioFileCount > 1 && images.Length == 1 ? images.First() : null;
     }
 
     private static Result EnsureDirectoryExists(string moveToDir, Printer printer)
@@ -102,13 +110,14 @@ internal static class Mover
                 return Result.Ok();
             }
 
-            printer.Debug($"Creating move-to directory \"{moveToDir}\" (based on playlist metadata)... ",
-                              appendLineBreak: false);
+            printer.Debug(
+                $"Creating move-to directory \"{moveToDir}\" (based on playlist metadata)... ",
+                appendLineBreak: false
+            );
 
             Directory.CreateDirectory(moveToDir);
             printer.Debug("OK.");
             return Result.Ok();
-
         }
         catch (Exception ex)
         {
@@ -121,7 +130,8 @@ internal static class Mover
         ICollection<FileInfo> audioFiles,
         string moveToDir,
         bool overwrite,
-        Printer printer)
+        Printer printer
+    )
     {
         uint successCount = 0;
         uint failureCount = 0;
@@ -130,10 +140,7 @@ internal static class Mover
         {
             try
             {
-                File.Move(
-                    file.FullName,
-                    Path.Combine(moveToDir, file.Name),
-                    overwrite);
+                File.Move(file.FullName, Path.Combine(moveToDir, file.Name), overwrite);
 
                 successCount++;
 
@@ -156,7 +163,8 @@ internal static class Mover
         string moveToDir,
         int audioFileCount,
         bool overwrite,
-        Printer printer)
+        Printer printer
+    )
     {
         try
         {
@@ -168,10 +176,11 @@ internal static class Mover
             {
                 return;
             }
-            
+
             image.MoveTo(
                 Path.Combine(moveToDir, $"{baseFileName.Trim()}.jpg"),
-                overwrite: overwrite);
+                overwrite: overwrite
+            );
 
             printer.Info("Moved image file.");
         }
@@ -181,13 +190,18 @@ internal static class Mover
         }
     }
 
-    private static string GetSafeSubDirectoryName(CollectionMetadata? collectionData, TaggingSet taggingSet)
+    private static string GetSafeSubDirectoryName(
+        CollectionMetadata? collectionData,
+        TaggingSet taggingSet
+    )
     {
         string workingName;
 
-        if (collectionData is CollectionMetadata metadata &&
-            metadata.Uploader.HasText() &&
-            metadata.Title.HasText())
+        if (
+            collectionData is CollectionMetadata metadata
+            && metadata.Uploader.HasText()
+            && metadata.Title.HasText()
+        )
         {
             workingName = metadata.Uploader;
         }
@@ -195,9 +209,7 @@ internal static class Mover
         {
             var jsonResult = GetParsedVideoJson(taggingSet);
 
-            workingName = jsonResult.IsSuccess
-                ? jsonResult.Value.Uploader
-                : string.Empty;
+            workingName = jsonResult.IsSuccess ? jsonResult.Value.Uploader : string.Empty;
         }
 
         var safeName = workingName.ReplaceInvalidPathChars().Trim();
@@ -217,7 +229,9 @@ internal static class Mover
         }
         catch (Exception ex)
         {
-            return Result.Fail($"Error reading JSON file \"{taggingSet.JsonFilePath}\": {ex.Message}.");
+            return Result.Fail(
+                $"Error reading JSON file \"{taggingSet.JsonFilePath}\": {ex.Message}."
+            );
         }
 
         try
@@ -227,7 +241,9 @@ internal static class Mover
         }
         catch (JsonException ex)
         {
-            return Result.Fail($"Error deserializing JSON from file \"{taggingSet.JsonFilePath}\": {ex.Message}");
+            return Result.Fail(
+                $"Error deserializing JSON from file \"{taggingSet.JsonFilePath}\": {ex.Message}"
+            );
         }
     }
 }

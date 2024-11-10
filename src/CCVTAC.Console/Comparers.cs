@@ -8,9 +8,9 @@ internal class Comparers
         {
             return (x, y) switch
             {
-                (null, null)           => true,
+                (null, null) => true,
                 (null, _) or (_, null) => false,
-                _ => string.Equals(x.Trim(), y.Trim(), StringComparison.OrdinalIgnoreCase)
+                _ => string.Equals(x.Trim(), y.Trim(), StringComparison.OrdinalIgnoreCase),
             };
         }
 

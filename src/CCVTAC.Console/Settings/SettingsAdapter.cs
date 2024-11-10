@@ -1,5 +1,5 @@
-using Spectre.Console;
 using Microsoft.FSharp.Core;
+using Spectre.Console;
 using UserSettings = CCVTAC.FSharp.Settings.UserSettings;
 
 namespace CCVTAC.Console.Settings;
@@ -28,9 +28,7 @@ public static class SettingsAdapter
     ///     3. `Fail`, indicating a failure in the read or write process or in settings validation.
     /// </returns>
     /// <remarks>This is intended to be a temporary solution until more code is moved to F#.</remarks>
-    internal static Result<UserSettings> ProcessSettings(
-        string? maybeSettingsPath,
-        Printer printer)
+    internal static Result<UserSettings> ProcessSettings(string? maybeSettingsPath, Printer printer)
     {
         var path = FSharp.Settings.FilePath.NewFilePath(maybeSettingsPath);
 
@@ -57,7 +55,9 @@ public static class SettingsAdapter
             var result = FSharp.Settings.IO.WriteDefaultFile(path, DefaultFileName);
             if (result is { IsError: true })
             {
-                return Result.Fail($"Unexpected error writing the default settings: {result.ErrorValue}");
+                return Result.Fail(
+                    $"Unexpected error writing the default settings: {result.ErrorValue}"
+                );
             }
 
             printer.Info(result.ResultValue); // The new-file message.
@@ -94,15 +94,20 @@ public static class SettingsAdapter
     /// Returns a Result containing a new Settings instance with the Audio Format value updated,
     /// or else an Error. This only affects the current session; the settings file is not updated.
     /// </summary>
-    internal static FSharpResult<UserSettings, string> UpdateAudioFormat(UserSettings settings, string newFormat) =>
-        FSharp.Settings.LiveUpdating.UpdateAudioFormat(settings, newFormat.Split(','));
+    internal static FSharpResult<UserSettings, string> UpdateAudioFormat(
+        UserSettings settings,
+        string newFormat
+    ) => FSharp.Settings.LiveUpdating.UpdateAudioFormat(settings, newFormat.Split(','));
+
     /// <summary>
 
     /// Returns a Result containing a new Settings instance with the Audio Quality value updated,
     /// or else an Error. This only affects the current session; the settings file is not updated.
     /// </summary>
-    internal static FSharpResult<UserSettings, string> UpdateAudioQuality(UserSettings settings, byte newQuality) =>
-        FSharp.Settings.LiveUpdating.UpdateAudioQuality(settings, newQuality);
+    internal static FSharpResult<UserSettings, string> UpdateAudioQuality(
+        UserSettings settings,
+        byte newQuality
+    ) => FSharp.Settings.LiveUpdating.UpdateAudioQuality(settings, newQuality);
 
     /// <summary>
     /// Prints a summary of the given settings.
@@ -110,10 +115,7 @@ public static class SettingsAdapter
     /// <param name="settings"></param>
     /// <param name="printer"></param>
     /// <param name="header">An optional line of text to appear above the settings.</param>
-    internal static void PrintSummary(
-        UserSettings settings,
-        Printer printer,
-        string? header = null)
+    internal static void PrintSummary(UserSettings settings, Printer printer, string? header = null)
     {
         if (header.HasText())
         {

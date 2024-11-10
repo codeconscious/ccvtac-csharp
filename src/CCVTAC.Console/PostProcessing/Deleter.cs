@@ -8,7 +8,8 @@ internal static class Deleter
         IReadOnlyCollection<string> taggingSetFileNames,
         CollectionMetadata? collectionMetadata,
         string workingDirectory,
-        Printer printer)
+        Printer printer
+    )
     {
         ImmutableList<string> collectionFileNames;
         var getFileResult = GetCollectionFiles(collectionMetadata, workingDirectory);
@@ -42,7 +43,8 @@ internal static class Deleter
 
     private static Result<ImmutableList<string>> GetCollectionFiles(
         CollectionMetadata? collectionMetadata,
-        string workingDirectory)
+        string workingDirectory
+    )
     {
         if (collectionMetadata is null)
             return Result.Ok(ImmutableList<string>.Empty);

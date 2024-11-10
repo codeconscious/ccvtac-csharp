@@ -11,11 +11,12 @@ public sealed class ExtensionMethodTests
         private const string _validBaseFileName = @"filename123あいうえお漢字!@#$%^()_+ ";
         private const char _defaultReplaceWithChar = '_';
 
-        private static readonly char[] _pathInvalidChars = [
+        private static readonly char[] _pathInvalidChars =
+        [
             Path.PathSeparator,
             Path.DirectorySeparatorChar,
             Path.AltDirectorySeparatorChar,
-            Path.VolumeSeparatorChar
+            Path.VolumeSeparatorChar,
         ];
 
         [Fact]
@@ -23,7 +24,8 @@ public sealed class ExtensionMethodTests
         {
             string badFileName = _validBaseFileName + new string(_pathInvalidChars);
             string fixedPathName = badFileName.ReplaceInvalidPathChars(_defaultReplaceWithChar);
-            string expected = _validBaseFileName + new string(_defaultReplaceWithChar, _pathInvalidChars.Length);
+            string expected =
+                _validBaseFileName + new string(_defaultReplaceWithChar, _pathInvalidChars.Length);
             Assert.Equal(expected, fixedPathName);
         }
 
@@ -40,8 +42,12 @@ public sealed class ExtensionMethodTests
         {
             char[] customInvalidChars = ['&', '＆'];
             string badFileName = _validBaseFileName + new string(customInvalidChars);
-            string fixedPathName = badFileName.ReplaceInvalidPathChars(_defaultReplaceWithChar, customInvalidChars);
-            string expected = _validBaseFileName + new string(_defaultReplaceWithChar, customInvalidChars.Length);
+            string fixedPathName = badFileName.ReplaceInvalidPathChars(
+                _defaultReplaceWithChar,
+                customInvalidChars
+            );
+            string expected =
+                _validBaseFileName + new string(_defaultReplaceWithChar, customInvalidChars.Length);
             Assert.Equal(expected, fixedPathName);
         }
 
@@ -50,7 +56,10 @@ public sealed class ExtensionMethodTests
         {
             char[] customInvalidChars = ['&', '＆'];
             const string goodFileName = _validBaseFileName + "++";
-            string result = goodFileName.ReplaceInvalidPathChars(_defaultReplaceWithChar, customInvalidChars);
+            string result = goodFileName.ReplaceInvalidPathChars(
+                _defaultReplaceWithChar,
+                customInvalidChars
+            );
             Assert.Equal(goodFileName, result);
         }
 
@@ -58,7 +67,9 @@ public sealed class ExtensionMethodTests
         public void ReplaceInvalidPathChars_InvalidReplaceChar_ThrowsException()
         {
             const char knownInvalidChar = '/';
-            Assert.Throws<ArgumentException>(() => _validBaseFileName.ReplaceInvalidPathChars(knownInvalidChar));
+            Assert.Throws<ArgumentException>(
+                () => _validBaseFileName.ReplaceInvalidPathChars(knownInvalidChar)
+            );
         }
     }
 
@@ -154,7 +165,13 @@ public sealed class ExtensionMethodTests
     public sealed class CaseInsensitiveContainsTests
     {
         private static readonly List<string> _celestialBodies =
-            ["Moon", "Mercury", "Mars", "Jupiter", "Venus"];
+        [
+            "Moon",
+            "Mercury",
+            "Mars",
+            "Jupiter",
+            "Venus",
+        ];
 
         [Fact]
         public void CaseInsensitiveContains_EmptyCollection_ReturnsFalse()

@@ -1,11 +1,11 @@
-using CCVTAC.Console.Settings;
+using System.Threading;
 using CCVTAC.Console.Downloading;
 using CCVTAC.Console.IoUtilities;
 using CCVTAC.Console.PostProcessing;
+using CCVTAC.Console.Settings;
 using Spectre.Console;
-using System.Threading;
-using UserSettings = CCVTAC.FSharp.Settings.UserSettings;
 using static CCVTAC.Console.InputHelper;
+using UserSettings = CCVTAC.FSharp.Settings.UserSettings;
 
 namespace CCVTAC.Console;
 
@@ -23,7 +23,8 @@ internal class Orchestrator
         if (Downloader.ExternalTool.ProgramExists() is { IsFailed: true })
         {
             printer.Error(
-                $"To use this application, please first install {Downloader.ExternalTool.Name} ({Downloader.ExternalTool.Url}).");
+                $"To use this application, please first install {Downloader.ExternalTool.Name} ({Downloader.ExternalTool.Url})."
+            );
             printer.Info("Pass '--help' for more information.");
             return;
         }
@@ -58,7 +59,9 @@ internal class Orchestrator
 
             if (splitInputs.IsEmpty)
             {
-                printer.Error($"Invalid input. Enter only URLs or commands beginning with \"{Commands.Prefix}\".");
+                printer.Error(
+                    $"Invalid input. Enter only URLs or commands beginning with \"{Commands.Prefix}\"."
+                );
                 continue;
             }
 
@@ -67,7 +70,14 @@ internal class Orchestrator
 
             SummarizeInput(categorizedInputs, categoryCounts, printer);
 
-            nextAction = ProcessBatch(categorizedInputs, categoryCounts, ref settings, results, history, printer);
+            nextAction = ProcessBatch(
+                categorizedInputs,
+                categoryCounts,
+                ref settings,
+                results,
+                history,
+                printer
+            );
         }
 
         results.PrintSessionSummary();
@@ -83,7 +93,8 @@ internal class Orchestrator
         ref UserSettings settings,
         ResultTracker<string?> resultTracker,
         History history,
-        Printer printer)
+        Printer printer
+    )
     {
         var inputTime = DateTime.Now;
         var nextAction = NextAction.Continue;
@@ -94,10 +105,19 @@ internal class Orchestrator
 
         foreach (CategorizedInput input in categorizedInputs)
         {
-            var result = input.Category is InputCategory.Command
-                ? ProcessCommand(input.Text, ref settings, history, printer)
-                : ProcessUrl(input.Text, settings, resultTracker, history, inputTime,
-                             categoryCounts[InputCategory.Url], ++inputIndex, printer);
+            var result =
+                input.Category is InputCategory.Command
+                    ? ProcessCommand(input.Text, ref settings, history, printer)
+                    : ProcessUrl(
+                        input.Text,
+                        settings,
+                        resultTracker,
+                        history,
+                        inputTime,
+                        categoryCounts[InputCategory.Url],
+                        ++inputIndex,
+                        printer
+                    );
 
             batchResults.RegisterResult(input.Text, result);
 
@@ -116,7 +136,9 @@ internal class Orchestrator
 
         if (categoryCounts[InputCategory.Url] > 1)
         {
-            printer.Info($"{Environment.NewLine}Finished with batch of {categoryCounts[InputCategory.Url]} URLs in {watch.ElapsedFriendly}.");
+            printer.Info(
+                $"{Environment.NewLine}Finished with batch of {categoryCounts[InputCategory.Url]} URLs in {watch.ElapsedFriendly}."
+            );
             batchResults.PrintBatchFailures();
         }
 
@@ -131,7 +153,8 @@ internal class Orchestrator
         DateTime urlInputTime,
         int batchSize,
         int urlIndex,
-        Printer printer)
+        Printer printer
+    )
     {
         var emptyDirResult = IoUtilities.Directories.WarnIfAnyFiles(settings.WorkingDirectory, 10);
         if (emptyDirResult.IsFailed)
@@ -143,7 +166,10 @@ internal class Orchestrator
         if (urlIndex > 1) // Don't sleep for the very first URL.
         {
             Sleep(settings.SleepSecondsBetweenURLs);
-            printer.Info($"Slept for {settings.SleepSecondsBetweenURLs} second(s).", appendLines: 1);
+            printer.Info(
+                $"Slept for {settings.SleepSecondsBetweenURLs} second(s).",
+                appendLines: 1
+            );
         }
 
         if (batchSize > 1)
@@ -179,9 +205,7 @@ internal class Orchestrator
 
         PostProcessor.Run(settings, mediaType, printer);
 
-        string groupClause = batchSize > 1
-            ? $" (group {urlIndex} of {batchSize})"
-            : string.Empty;
+        string groupClause = batchSize > 1 ? $" (group {urlIndex} of {batchSize})" : string.Empty;
 
         printer.Info($"Processed '{url}'{groupClause} in {jobWatch.ElapsedFriendly}.");
         return NextAction.Continue;
@@ -191,7 +215,8 @@ internal class Orchestrator
         string command,
         ref UserSettings settings,
         History history,
-        Printer printer)
+        Printer printer
+    )
     {
         if (Commands.SummaryCommand.Equals(command, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -227,11 +252,11 @@ internal class Orchestrator
             return Result.Ok(NextAction.Continue);
         }
 
-        static string SummarizeToggle(string settingName, bool setting)
-            => $"{settingName} was toggled to {(setting ? "ON" : "OFF")} for this session.";
+        static string SummarizeToggle(string settingName, bool setting) =>
+            $"{settingName} was toggled to {(setting ? "ON" : "OFF")} for this session.";
 
-        static string SummarizeUpdate(string settingName, string setting)
-            => $"{settingName} was updated to \"{setting}\" for this session.";
+        static string SummarizeUpdate(string settingName, string setting) =>
+            $"{settingName} was updated to \"{setting}\" for this session.";
 
         if (Commands.SplitChapterToggles.CaseInsensitiveContains(command))
         {
@@ -255,13 +280,22 @@ internal class Orchestrator
             return Result.Ok(NextAction.Continue);
         }
 
-        if (command.StartsWith(Commands.UpdateAudioFormatPrefix, StringComparison.InvariantCultureIgnoreCase))
+        if (
+            command.StartsWith(
+                Commands.UpdateAudioFormatPrefix,
+                StringComparison.InvariantCultureIgnoreCase
+            )
+        )
         {
-            var format = command.Replace(Commands.UpdateAudioFormatPrefix, string.Empty).ToLowerInvariant();
+            var format = command
+                .Replace(Commands.UpdateAudioFormatPrefix, string.Empty)
+                .ToLowerInvariant();
 
             if (format == string.Empty)
             {
-                return Result.Fail($"You must append one or more supported audio format separated by commas (e.g., \"m4a,opus,best\").");
+                return Result.Fail(
+                    $"You must append one or more supported audio format separated by commas (e.g., \"m4a,opus,best\")."
+                );
             }
 
             var updateResult = SettingsAdapter.UpdateAudioFormat(settings, format);
@@ -271,11 +305,18 @@ internal class Orchestrator
             }
 
             settings = updateResult.ResultValue;
-            printer.Info(SummarizeUpdate("Audio Formats", string.Join(", ", settings.AudioFormats)));
+            printer.Info(
+                SummarizeUpdate("Audio Formats", string.Join(", ", settings.AudioFormats))
+            );
             return Result.Ok(NextAction.Continue);
         }
 
-        if (command.StartsWith(Commands.UpdateAudioQualityPrefix, StringComparison.InvariantCultureIgnoreCase))
+        if (
+            command.StartsWith(
+                Commands.UpdateAudioQualityPrefix,
+                StringComparison.InvariantCultureIgnoreCase
+            )
+        )
         {
             var inputQuality = command.Replace(Commands.UpdateAudioQualityPrefix, string.Empty);
 
@@ -306,27 +347,27 @@ internal class Orchestrator
     private static void SummarizeInput(
         ImmutableArray<CategorizedInput> categorizedInputs,
         CategoryCounts counts,
-        Printer printer)
+        Printer printer
+    )
     {
         if (categorizedInputs.Length > 1)
         {
             var urlSummary = counts[InputCategory.Url] switch
             {
                 1 => "1 URL",
-                >1 => $"{counts[InputCategory.Url]} URLs",
-                _ => string.Empty
+                > 1 => $"{counts[InputCategory.Url]} URLs",
+                _ => string.Empty,
             };
 
             var commandSummary = counts[InputCategory.Command] switch
             {
                 1 => "1 command",
-                >1 => $"{counts[InputCategory.Command]} commands",
-                _ => string.Empty
+                > 1 => $"{counts[InputCategory.Command]} commands",
+                _ => string.Empty,
             };
 
-            var connector = urlSummary.HasText() && commandSummary.HasText()
-                ? " and "
-                : string.Empty;
+            var connector =
+                urlSummary.HasText() && commandSummary.HasText() ? " and " : string.Empty;
 
             printer.Info($"Batch of {urlSummary}{connector}{commandSummary} entered.");
 
@@ -342,19 +383,23 @@ internal class Orchestrator
     {
         ushort remainingSeconds = sleepSeconds;
 
-        AnsiConsole.Status()
-            .Start($"Sleeping for {sleepSeconds} seconds...", ctx =>
-            {
-                ctx.Spinner(Spinner.Known.Star);
-                ctx.SpinnerStyle(Style.Parse("blue"));
-
-                while (remainingSeconds > 0)
+        AnsiConsole
+            .Status()
+            .Start(
+                $"Sleeping for {sleepSeconds} seconds...",
+                ctx =>
                 {
-                    ctx.Status($"Sleeping for {remainingSeconds} seconds...");
-                    remainingSeconds--;
-                    Thread.Sleep(1000);
+                    ctx.Spinner(Spinner.Known.Star);
+                    ctx.SpinnerStyle(Style.Parse("blue"));
+
+                    while (remainingSeconds > 0)
+                    {
+                        ctx.Status($"Sleeping for {remainingSeconds} seconds...");
+                        remainingSeconds--;
+                        Thread.Sleep(1000);
+                    }
                 }
-            });
+            );
     }
 
     /// <summary>

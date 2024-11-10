@@ -6,7 +6,4 @@ namespace CCVTAC.Console.ExternalTools;
 /// <param name="Program">The external utility to be executed.</param>
 /// <param name="Args">All arguments to be passed to the external utility.</param>
 /// <param name="WorkingDirectory">The directory in which context the utility should be run.</param>
-internal sealed record ToolSettings(
-    ExternalTool Program,
-    string Args,
-    string WorkingDirectory);
+internal sealed record ToolSettings(ExternalTool Program, string Args, string WorkingDirectory);

@@ -7,16 +7,13 @@ public static class YouTubeMetadataExtensionMethods
     /// </summary>
     private static string UploaderSummary(this VideoMetadata videoData)
     {
-        string uploaderLinkOrIdOrEmpty = videoData.UploaderUrl.HasText()
-            ? videoData.UploaderUrl
-            : videoData.UploaderId.HasText()
-                ? videoData.UploaderId
-                : string.Empty;
+        string uploaderLinkOrIdOrEmpty =
+            videoData.UploaderUrl.HasText() ? videoData.UploaderUrl
+            : videoData.UploaderId.HasText() ? videoData.UploaderId
+            : string.Empty;
 
-        return videoData.Uploader +
-               (uploaderLinkOrIdOrEmpty.HasText()
-                    ? $" ({uploaderLinkOrIdOrEmpty})"
-                    : string.Empty);
+        return videoData.Uploader
+            + (uploaderLinkOrIdOrEmpty.HasText() ? $" ({uploaderLinkOrIdOrEmpty})" : string.Empty);
     }
 
     /// <summary>
@@ -31,7 +28,10 @@ public static class YouTubeMetadataExtensionMethods
     /// <summary>
     /// Returns a formatted comment using data parsed from the JSON file.
     /// </summary>
-    public static string GenerateComment(this VideoMetadata videoData, CollectionMetadata? maybeCollectionData)
+    public static string GenerateComment(
+        this VideoMetadata videoData,
+        CollectionMetadata? maybeCollectionData
+    )
     {
         System.Text.StringBuilder sb = new();
 
@@ -58,7 +58,9 @@ public static class YouTubeMetadataExtensionMethods
             sb.AppendLine($"■ Track Title: {videoData.Title}");
         }
         sb.AppendLine($"■ Uploaded: {videoData.FormattedUploadDate()}");
-        var description = string.IsNullOrWhiteSpace(videoData.Description) ? "None." : videoData.Description;
+        var description = string.IsNullOrWhiteSpace(videoData.Description)
+            ? "None."
+            : videoData.Description;
         sb.AppendLine($"■ Video description: {description}");
 
         if (maybeCollectionData is { } collectionData)

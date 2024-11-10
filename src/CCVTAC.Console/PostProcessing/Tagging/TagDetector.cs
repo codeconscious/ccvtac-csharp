@@ -7,7 +7,7 @@ namespace CCVTAC.Console.PostProcessing.Tagging;
 /// </summary>
 internal sealed class TagDetector
 {
-    private TagDetectionPatterns Patterns { get; init;}
+    private TagDetectionPatterns Patterns { get; init; }
 
     internal TagDetector(TagDetectionPatterns tagDetectionPatterns)
     {
@@ -16,20 +16,17 @@ internal sealed class TagDetector
 
     internal string? DetectTitle(VideoMetadata videoData, string? defaultTitle = null)
     {
-        return Detectors.DetectSingle<string>(videoData, Patterns.Title, null)
-               ?? defaultTitle;
+        return Detectors.DetectSingle<string>(videoData, Patterns.Title, null) ?? defaultTitle;
     }
 
     internal string? DetectArtist(VideoMetadata videoData, string? defaultArtist = null)
     {
-        return Detectors.DetectSingle<string>(videoData, Patterns.Artist, null)
-               ?? defaultArtist;
+        return Detectors.DetectSingle<string>(videoData, Patterns.Artist, null) ?? defaultArtist;
     }
 
     internal string? DetectAlbum(VideoMetadata videoData, string? defaultAlbum = null)
     {
-        return Detectors.DetectSingle<string>(videoData, Patterns.Album, null)
-               ?? defaultAlbum;
+        return Detectors.DetectSingle<string>(videoData, Patterns.Album, null) ?? defaultAlbum;
     }
 
     internal string? DetectComposers(VideoMetadata videoData)

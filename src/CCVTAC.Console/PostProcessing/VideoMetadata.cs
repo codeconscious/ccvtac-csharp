@@ -79,4 +79,3 @@ public readonly record struct VideoMetadata(
     [property: JsonPropertyName("format")] string Format,
     [property: JsonPropertyName("_type")] string Type
 );
-

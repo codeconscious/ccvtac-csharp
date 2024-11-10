@@ -8,26 +8,29 @@ internal static class Downloader
 {
     private record Urls(string Primary, string? Supplementary);
 
-    internal static readonly ExternalTool ExternalTool = new(
-        "yt-dlp",
-        "https://github.com/yt-dlp/yt-dlp/",
-        "YouTube downloads and audio extraction"
-    );
+    internal static readonly ExternalTool ExternalTool =
+        new(
+            "yt-dlp",
+            "https://github.com/yt-dlp/yt-dlp/",
+            "YouTube downloads and audio extraction"
+        );
 
     internal static Result<MediaTypeWithUrls> WrapUrlInMediaType(string url)
     {
         var result = FSharp.Downloading.MediaTypeWithIds(url);
 
-        return result.IsOk
-            ? Result.Ok(result.ResultValue)
-            : Result.Fail(result.ErrorValue);
+        return result.IsOk ? Result.Ok(result.ResultValue) : Result.Fail(result.ErrorValue);
     }
 
     /// <summary>
     /// Completes the actual download process.
     /// </summary>
     /// <returns>A `Result` that, if successful, contains the name of the successfully downloaded format.</returns>
-    internal static Result<string?> Run(MediaTypeWithUrls mediaType, UserSettings settings, Printer printer)
+    internal static Result<string?> Run(
+        MediaTypeWithUrls mediaType,
+        UserSettings settings,
+        Printer printer
+    )
     {
         if (mediaType is { IsVideo: false, IsPlaylistVideo: false })
         {
@@ -37,7 +40,7 @@ internal static class Downloader
         var rawUrls = FSharp.Downloading.ExtractDownloadUrls(mediaType);
         var urls = new Urls(rawUrls[0], rawUrls.Length == 2 ? rawUrls[1] : null);
 
-        var downloadResult = new Result<(int, string)> ();
+        var downloadResult = new Result<(int, string)>();
         string? successfulFormat = null;
 
         foreach (string format in settings.AudioFormats)
@@ -72,9 +75,8 @@ internal static class Downloader
         int audioFileCount = IoUtilities.Directories.AudioFileCount(settings.WorkingDirectory);
         if (audioFileCount == 0)
         {
-            return Result.Fail(string.Join(
-                Environment.NewLine,
-                ["No audio files were downloaded.", ..errors])
+            return Result.Fail(
+                string.Join(Environment.NewLine, ["No audio files were downloaded.", .. errors])
             );
         }
 
@@ -85,19 +87,24 @@ internal static class Downloader
         }
         else if (urls.Supplementary is not null)
         {
-            string supplementaryArgs = GenerateDownloadArgs(null, settings, null, urls.Supplementary);
+            string supplementaryArgs = GenerateDownloadArgs(
+                null,
+                settings,
+                null,
+                urls.Supplementary
+            );
 
-            var supplementaryDownloadSettings =
-                new ToolSettings(
-                    ExternalTool,
-                    supplementaryArgs,
-                    settings.WorkingDirectory!);
+            var supplementaryDownloadSettings = new ToolSettings(
+                ExternalTool,
+                supplementaryArgs,
+                settings.WorkingDirectory!
+            );
 
-            var supplementaryDownloadResult =
-                Runner.Run(
-                    supplementaryDownloadSettings,
-                    otherSuccessExitCodes: [1],
-                    printer);
+            var supplementaryDownloadResult = Runner.Run(
+                supplementaryDownloadSettings,
+                otherSuccessExitCodes: [1],
+                printer
+            );
 
             if (supplementaryDownloadResult.IsSuccess)
             {
@@ -127,32 +134,33 @@ internal static class Downloader
         string? audioFormat,
         UserSettings settings,
         MediaTypeWithUrls? mediaType,
-        params string[]? additionalArgs)
+        params string[]? additionalArgs
+    )
     {
         const string writeJson = "--write-info-json";
         const string trimFileNames = "--trim-filenames 250";
 
         // yt-dlp warning: "-f best" selects the best pre-merged format which is often not the best option.
         // To let yt-dlp download and merge the best available formats, simply do not pass any format selection."
-        var formatArg = !audioFormat.HasText() || audioFormat == "best"
-            ? string.Empty
-            : $"-f {audioFormat}";
+        var formatArg =
+            !audioFormat.HasText() || audioFormat == "best" ? string.Empty : $"-f {audioFormat}";
 
         HashSet<string> args = mediaType switch
         {
             // For metadata-only downloads
-            null => [ $"--flat-playlist {writeJson} {trimFileNames}" ],
+            null => [$"--flat-playlist {writeJson} {trimFileNames}"],
 
             // For video(s) with their respective metadata files (JSON and artwork).
-            _ => [
-                    "--extract-audio",
-                    formatArg,
-                    $"--audio-quality {settings.AudioQuality}",
-                    "--write-thumbnail --convert-thumbnails jpg", // For album art
-                    writeJson, // Contains metadata
-                    trimFileNames,
-                    "--retries 2", // Default is 10, which seems like overkill
-                 ]
+            _ =>
+            [
+                "--extract-audio",
+                formatArg,
+                $"--audio-quality {settings.AudioQuality}",
+                "--write-thumbnail --convert-thumbnails jpg", // For album art
+                writeJson, // Contains metadata
+                trimFileNames,
+                "--retries 2", // Default is 10, which seems like overkill
+            ],
         };
 
         // yt-dlp has a `--verbose` option too, but that's too much data.
@@ -180,7 +188,9 @@ internal static class Downloader
                 // Use `s` instead of `B` to trim to a specified number of characters.
                 // Reference: https://github.com/yt-dlp/yt-dlp/issues/1136#issuecomment-1114252397
                 // Also, it's possible this trimming should be applied to `ReleasePlaylist`s too.
-                args.Add("""-o "%(uploader).80B - %(playlist).80B - %(playlist_autonumber)s - %(title).150B [%(id)s].%(ext)s" --playlist-reverse""");
+                args.Add(
+                    """-o "%(uploader).80B - %(playlist).80B - %(playlist_autonumber)s - %(title).150B [%(id)s].%(ext)s" --playlist-reverse"""
+                );
             }
         }
 

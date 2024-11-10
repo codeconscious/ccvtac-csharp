@@ -28,7 +28,10 @@ public class History
         try
         {
             string serializedEntryTime = JsonSerializer.Serialize(entryTime).Replace("\"", "");
-            File.AppendAllText(FilePath, serializedEntryTime + Separator + url + Environment.NewLine);
+            File.AppendAllText(
+                FilePath,
+                serializedEntryTime + Separator + url + Environment.NewLine
+            );
 
             printer.Debug($"Added \"{url}\" to the history log.");
         }
@@ -42,13 +45,11 @@ public class History
     {
         try
         {
-            IEnumerable<IGrouping<DateTime, string>> historyData =
-                File.ReadAllLines(FilePath)
-                    .TakeLast(DisplayCount)
-                    .Select(line => line.Split(Separator))
-                    .Where(lineItems => lineItems.Length == 2) // Only lines with date-times
-                    .GroupBy(line =>DateTime.Parse(line[0]),
-                             line => line[1]);
+            IEnumerable<IGrouping<DateTime, string>> historyData = File.ReadAllLines(FilePath)
+                .TakeLast(DisplayCount)
+                .Select(line => line.Split(Separator))
+                .Where(lineItems => lineItems.Length == 2) // Only lines with date-times
+                .GroupBy(line => DateTime.Parse(line[0]), line => line[1]);
 
             Table table = new();
             table.Border(TableBorder.None);

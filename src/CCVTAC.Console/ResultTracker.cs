@@ -67,7 +67,9 @@ internal sealed class ResultTracker<T>
         var successLabel = _successCount == 1 ? "success" : "successes";
         var failureLabel = _failures.Count == 1 ? "failure" : "failures";
 
-        _printer.Info($"Quitting with {_successCount} {successLabel} and {_failures.Count} {failureLabel}.");
+        _printer.Info(
+            $"Quitting with {_successCount} {successLabel} and {_failures.Count} {failureLabel}."
+        );
 
         foreach (var (url, error) in _failures)
         {

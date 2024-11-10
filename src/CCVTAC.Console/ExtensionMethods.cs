@@ -21,8 +21,7 @@ public static class ExtensionMethods
     /// <summary>
     /// Determines whether a collection is empty.
     /// </summary>
-    public static bool None<T>(this IEnumerable<T> collection) =>
-        !collection.Any();
+    public static bool None<T>(this IEnumerable<T> collection) => !collection.Any();
 
     /// <summary>
     /// Determines whether no elements of a sequence satisfy a given condition.
@@ -44,30 +43,35 @@ public static class ExtensionMethods
     public static string ReplaceInvalidPathChars(
         this string sourceText,
         char replaceWith = '_',
-        char[]? customInvalidChars = null)
+        char[]? customInvalidChars = null
+    )
     {
         var invalidChars = Path.GetInvalidFileNameChars()
-                               .Concat(Path.GetInvalidPathChars())
-                               .Concat(new [] {
-                                    Path.PathSeparator,
-                                    Path.DirectorySeparatorChar,
-                                    Path.AltDirectorySeparatorChar,
-                                    Path.VolumeSeparatorChar })
-                               .Concat(customInvalidChars ?? Enumerable.Empty<char>())
-                               .ToFrozenSet();
+            .Concat(Path.GetInvalidPathChars())
+            .Concat(
+                new[]
+                {
+                    Path.PathSeparator,
+                    Path.DirectorySeparatorChar,
+                    Path.AltDirectorySeparatorChar,
+                    Path.VolumeSeparatorChar,
+                }
+            )
+            .Concat(customInvalidChars ?? Enumerable.Empty<char>())
+            .ToFrozenSet();
 
         if (invalidChars.Contains(replaceWith))
-            throw new ArgumentException($"The replacement char ('{replaceWith}') must be a valid path character.");
+            throw new ArgumentException(
+                $"The replacement char ('{replaceWith}') must be a valid path character."
+            );
 
         return invalidChars.Aggregate(
             new StringBuilder(sourceText),
             (workingText, ch) => workingText.Replace(ch, replaceWith),
-            (workingText)     => workingText.ToString()
+            (workingText) => workingText.ToString()
         );
     }
 
     public static string TrimTerminalLineBreak(this string text) =>
-        text.HasText()
-            ? text.TrimEnd(Environment.NewLine.ToCharArray())
-            : text;
+        text.HasText() ? text.TrimEnd(Environment.NewLine.ToCharArray()) : text;
 }

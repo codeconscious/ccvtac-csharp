@@ -21,10 +21,7 @@ public static partial class InputHelper
     /// </summary>
     public static ImmutableArray<string> SplitInput(string input)
     {
-        var matches = UserInputRegex()
-            .Matches(input)
-            .OfType<Match>()
-            .ToImmutableArray();
+        var matches = UserInputRegex().Matches(input).OfType<Match>().ToImmutableArray();
 
         if (matches.Length == 0)
         {
@@ -36,43 +33,42 @@ public static partial class InputHelper
             return [input];
         }
 
-        var startIndices = matches
-            .Select(m => m.Index)
-            .ToImmutableArray();
+        var startIndices = matches.Select(m => m.Index).ToImmutableArray();
 
-        var indexPairs = startIndices
-            .Select((startIndex, iterIndex) =>
-                {
-                    int endIndex = iterIndex == startIndices.Length - 1
+        var indexPairs = startIndices.Select(
+            (startIndex, iterIndex) =>
+            {
+                int endIndex =
+                    iterIndex == startIndices.Length - 1
                         ? input.Length
                         : startIndices[iterIndex + 1];
 
-                    return new IndexPair(startIndex, endIndex);
-                });
+                return new IndexPair(startIndex, endIndex);
+            }
+        );
 
-        var splitInputs = indexPairs
-            .Select(p => input[p.Start..p.End].Trim())
-            .Distinct();
+        var splitInputs = indexPairs.Select(p => input[p.Start..p.End].Trim()).Distinct();
 
         return [.. splitInputs];
     }
 
-    internal enum InputCategory { Url, Command }
+    internal enum InputCategory
+    {
+        Url,
+        Command,
+    }
 
     internal record CategorizedInput(string Text, InputCategory Category);
 
     internal static ImmutableArray<CategorizedInput> CategorizeInputs(ICollection<string> inputs)
     {
         return
-            [
-                ..inputs
-                    .Select(input =>
-                        new CategorizedInput(
-                            input,
-                            input.StartsWith(Commands.Prefix)
-                                ? InputCategory.Command
-                                : InputCategory.Url))
-            ];
+        [
+            .. inputs.Select(input => new CategorizedInput(
+                input,
+                input.StartsWith(Commands.Prefix) ? InputCategory.Command : InputCategory.Url
+            )),
+        ];
     }
 
     internal class CategoryCounts
@@ -89,10 +85,7 @@ public static partial class InputHelper
 
     internal static CategoryCounts CountCategories(ICollection<CategorizedInput> inputs)
     {
-        var counts =
-            inputs
-                .GroupBy(i => i.Category)
-                .ToDictionary(gr => gr.Key, gr => gr.Count());
+        var counts = inputs.GroupBy(i => i.Category).ToDictionary(gr => gr.Key, gr => gr.Count());
 
         return new CategoryCounts(counts);
     }
